@@ -42,4 +42,6 @@ for repo in repos:
     repo.git.add('.')
     repo.index.commit("Update license to MIT")
     origin = repo.remote(name='origin')
+    origin.set_url(
+        f"https://{ACCESS_TOKEN}@github.com/{username}/{repo_name}.git")
     origin.push()

@@ -1,50 +1,43 @@
-import os
+import git
+from github import Github, GithubException
 import requests
 
-access_token = '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'
-username = 'AlzyWelzy'
+# Get AGPL 3.0 license content from GitHub's License API
+response = requests.get("https://api.github.com/licenses/agpl-3.0")
+AGPL_LICENSE = response.json()["body"]
 
-# Get AGPL 3.0 license content
-response = requests.get(f"https://api.github.com/licenses/agpl-3.0", headers={
-    "Accept": "application/vnd.github+json",
-    "Authorization": f"Token {access_token}"
-})
-agpl_text = response.json()["body"]
 
-# Get all repositories from the user
-response = requests.get(f"https://api.github.com/users/{username}/repos", headers={
-    "Accept": "application/vnd.github+json",
-    "Authorization": f"Token {access_token}"
-})
-repos = response.json()
+# Github access token
+ACCESS_TOKEN = "ACCESS_TOKEN"
 
-# Iterate through all repositories
+# Github username
+username = "USERNAME"
+
+# Connect to Github API
+g = Github(access_token)
+
+# Get the user
+user = g.get_user(username)
+
+# Get all the repos
+repos = user.get_repos()
+
+
 for repo in repos:
-    # Convert HTTPS URL to SSH URL
-    ssh_url = repo['clone_url'].replace('https://', 'git@').replace('github.com/', 'github.com:')
-
-    # Clone repository using SSH
-    os.system(f"git clone {ssh_url}")
-
-    # Go to repository directory
-    os.chdir(repo["name"])
-
-    # Check if LICENSE file already exists
-    if os.path.isfile("LICENSE"):
-        # Replace contents of LICENSE file with AGPL 3.0 license text
-        with open("LICENSE", "w") as f:
-            f.write(agpl_text)
+    # Check if a license file exists in the repo
+    if repo.get_license() is not None:
+        # Update the license file with AGPL 3.0 content
+        repo.update_file("LICENSE", "Update license to AGPL 3.0",
+                         AGPL_LICENSE, repo.get_license().sha)
     else:
-        # Create LICENSE file with AGPL 3.0 license text
-        with open("LICENSE", "w") as f:
-            f.write(agpl_text)
-
-    # Add and commit changes
-    os.system("git add .")
-    os.system('git commit -m "Added AGPL 3.0 license"')
-
-    # Push changes to GitHub
-    os.system("git push")
-
-    # Go back to parent directory
-    os.chdir("..")
+        # Create a new license file with AGPL 3.0 content
+        repo.create_file("LICENSE", "Add AGPL 3.0 license", AGPL_LICENSE)
+    # Get the repository's local clone
+    repo_name = repo.name
+    clone_url = repo.clone_url
+    local_path = f"/path/to/local/clone/{repo_name}"
+    git.Repo.clone_from(clone_url, local_path)
+    repo = git.Repo(local_path)
+    repo.git.add('.')
+    repo.index.commit("Update license to AGPL 3.0")
+    repo.remote().push()

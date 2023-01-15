@@ -16,14 +16,13 @@ session.auth = (ACCESS_TOKEN, "")
 url = f"https://api.github.com/users/{username}/repos"
 repos = session.get(url).json()
 
-# Define the MIT license key
-MIT_LICENSE_KEY = "mit"
-# MIT_LICENSE_KEY = "agpl-3.0"
+# Define the AGPL 3.0 license key
+AGPL_LICENSE_KEY = "agpl-3.0"
 
-# Get the MIT license content from the GitHub license API
-url = f"https://api.github.com/licenses/{MIT_LICENSE_KEY}"
-mit_license = session.get(url).json()
-MIT_LICENSE = mit_license["body"]
+# Get the AGPL 3.0 license content from the GitHub license API
+url = f"https://api.github.com/licenses/{AGPL_LICENSE_KEY}"
+agpl_license = session.get(url).json()
+AGPL_LICENSE = agpl_license["body"]
 
 for repo in repos:
     repo_name = repo["name"]
@@ -35,11 +34,11 @@ for repo in repos:
     license_path = os.path.join(local_path, "LICENSE")
     if os.path.isfile(license_path):
         with open(license_path, "w") as f:
-            f.write(MIT_LICENSE)
+            f.write(AGPL_LICENSE)
     else:
         with open(license_path, "w") as f:
-            f.write(MIT_LICENSE)
+            f.write(AGPL_LICENSE)
     repo.git.add('.')
-    repo.index.commit("Update license to MIT")
+    repo.index.commit("Update license to AGPL 3.0")
     origin = repo.remote(name='origin')
     origin.push()
