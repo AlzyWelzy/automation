@@ -13,9 +13,9 @@ cd $project_name
 rm -rf .git
 
 # Replace project_name in README.md, CONTRIBUTING.md, and CODE_OF_CONDUCT.md
-sed -i '' -e "s/your_project_name/$project_name/g" README.md
-sed -i '' -e "s/your_project_name/$project_name/g" CONTRIBUTING.md
-sed -i '' -e "s/your_project_name/$project_name/g" CODE_OF_CONDUCT.md
+# sed -i '' -e "s/your_project_name/$project_name/g" README.md
+# sed -i '' -e "s/your_project_name/$project_name/g" CONTRIBUTING.md
+# sed -i '' -e "s/your_project_name/$project_name/g" CODE_OF_CONDUCT.md
 
 # Create a virtual environment
 python3 -m venv venv
@@ -27,6 +27,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Initialize the database
-python manage.py migrate
+# python manage.py migrate
 
 echo "Django project $project_name created successfully."
