@@ -1,4 +1,4 @@
-automation
+Automation
 ==========
 
 Effortlessly automate your work with our powerful and versatile scripts.
