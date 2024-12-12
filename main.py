@@ -1,50 +1,68 @@
 import os
-import pytube
-from pytube import YouTube
+import subprocess
+from datetime import datetime, timedelta
+
+# Configurable variables
+repo_name = "mere-aka"
+commit_message = "commit - "
+username = "AlzyWelzy"  # Replace with your GitHub username
+email = "welzyalzy@gmail.com"  # Replace with your GitHub email
+remote_url = f"https://github.com/{username}/{repo_name}.git"
 
 
-# Define a function to download a YouTube video
-def download_video(url):
+# Create a new repository
+def initialize_repo():
+    if not os.path.exists(repo_name):
+        os.makedirs(repo_name)
+    os.chdir(repo_name)
+    subprocess.run(["git", "init"], check=True)
+    subprocess.run(["git", "config", "user.name", username], check=True)
+    subprocess.run(["git", "config", "user.email", email], check=True)
+
+
+# Generate fake commits
+def generate_commits(days):
+    start_date = datetime.now() - timedelta(days=days)
+    for i in range(days):
+        commit_date = start_date + timedelta(days=i)
+        formatted_date = commit_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Create a dummy file for each commit
+        file_name = f"dummy_{i}.txt"
+        with open(file_name, "w") as f:
+            f.write(f"Commit for {formatted_date}\n")
+
+        subprocess.run(["git", "add", file_name], check=True)
+
+        # Make the commit with the backdated timestamp
+        env = os.environ.copy()
+        env["GIT_COMMITTER_DATE"] = formatted_date
+        subprocess.run(
+            ["git", "commit", "--date", formatted_date, "-m", commit_message],
+            check=True,
+            env=env,
+        )
+
+
+# Push the changes to GitHub
+def push_to_github():
+    subprocess.run(["git", "branch", "-M", "main"], check=True)
+    subprocess.run(["git", "remote", "add", "origin", remote_url], check=True)
+    subprocess.run(["git", "push", "-u", "origin", "main"], check=True)
+
+
+# Main script
+def main():
     try:
-        # Get the video object
-        video = YouTube(url)
-
-        # Check if the video has subtitles in English
-        if "en" in video.captions:
-            # Download the video with the highest available quality and audio
-            video_stream = (
-                video.streams.filter(progressive=True, file_extension="mp4")
-                .order_by("resolution")
-                .desc()
-                .first()
-            )
-            video_stream.download(output_path=f"./{video.title}/")
-            subtitle = video.captions.get_by_language_code("en")
-            subtitle_str = subtitle.generate_srt_captions()
-            with open(f"./{video.title}/{video.title}.srt", "w") as srt_file:
-                srt_file.write(subtitle_str)
-        else:
-            # Download the video with the highest available quality and audio
-            video_stream = (
-                video.streams.filter(progressive=True, file_extension="mp4")
-                .order_by("resolution")
-                .desc()
-                .first()
-            )
-            video_stream.download(output_path=f"./{video.title}/")
-
-        print(f"Video downloaded successfully: {video.title}")
-
-    except pytube.exceptions.PytubeError as e:
-        print(f"Error downloading {url}: {e}")
+        initialize_repo()
+        generate_commits(1001)  # Generate commits for 1001 days
+        push_to_github()
+        print("Successfully generated and pushed fake commits!")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
     except Exception as e:
-        print(f"Unexpected error occurred while downloading {url}: {e}")
+        print(f"Unexpected error: {e}")
 
 
-# Read the text file containing the URLs
-with open("urls.txt", "r") as f:
-    urls = f.readlines()
-
-# Download each video
-for url in urls:
-    download_video(url.strip())
+if __name__ == "__main__":
+    main()
